@@ -163,6 +163,9 @@ extern NSString * const kCookieDiagnosticsDirectory;
 // Return YES if the current frame is ready according to the session pageLoadingStrategy.
 - (BOOL)isPageLoaded;
 
+//Method for action end point
+- (AppiumMacHTTPJSONResponse *)performAction:(NSDictionary *)commandParams statusCode:(int *)statusCode;
+
 // Utility methods for post_moveto:
 - (AppiumMacHTTPJSONResponse *)moveMouseInsideSandbox:(NSDictionary *)commandParams statusCode:(int *)statusCode;
 - (AppiumMacHTTPJSONResponse *)moveMouseOutsideSandbox:(NSDictionary *)commandParams statusCode:(int *)statusCode;

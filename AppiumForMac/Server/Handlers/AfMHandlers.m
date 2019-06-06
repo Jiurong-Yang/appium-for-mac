@@ -897,6 +897,16 @@
 // POST /session/:sessionId/dismiss_alert
 // Dismisses the currently displayed alert dialog. For confirm() and prompt() dialogs, this is equivalent to clicking the 'Cancel' button. For alert() dialogs, this is equivalent to clicking the 'OK' button.
 
+// POST /session/:sessionId/dismiss_alert
+// POST /session/:sessionId/action
+-(AppiumMacHTTPJSONResponse *)post_actions:(NSString*)path data:(NSData *)postData;
+{
+    return [self executeWebDriverCommandWithPath:path data:postData onMainThread:NO commandBlock:^(AfMSessionController *session, NSDictionary *commandParams, int *statusCode)
+    {
+        return [session performAction:commandParams statusCode:statusCode];
+    }];
+}
+
 // POST /session/:sessionId/moveto
 // Move the mouse by an offset of the specificed element. If no element is specified, the move is relative to the current mouse cursor. If an element is provided but no offset, the mouse will be moved to the center of the element. If the element is not visible, it will be scrolled into view.
 - (AppiumMacHTTPJSONResponse *)post_moveto:(NSString*)path data:(NSData *)postData;

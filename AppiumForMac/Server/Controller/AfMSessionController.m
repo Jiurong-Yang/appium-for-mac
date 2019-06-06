@@ -1452,6 +1452,12 @@ const NSTimeInterval kModifierPause = 0.05;
 }
 
 #pragma mark - Mouse Control
+//Action method
+- (AppiumMacHTTPJSONResponse *)performAction:(NSDictionary *)commandParams statusCode:(int *)statusCode
+{
+    NSLog(@"%@",commandParams);
+    return [AppiumMacHTTPJSONResponse responseWithJson:@[] status:kAfMStatusCodeSuccess session:self.sessionId];
+}
 
 // Utility method for post_moveto:.
 

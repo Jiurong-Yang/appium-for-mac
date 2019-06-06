@@ -164,7 +164,8 @@
 // POST /session/:sessionId/alert_text
 // POST /session/:sessionId/accept_alert
 // POST /session/:sessionId/dismiss_alert
-
+// POST /session/:sessionId/action
+-(AppiumMacHTTPJSONResponse *)post_actions:(NSString*)path data:(NSData *)postData;
 // POST /session/:sessionId/moveto
 -(AppiumMacHTTPJSONResponse *)post_moveto:(NSString*)path data:(NSData *)postData;
 
