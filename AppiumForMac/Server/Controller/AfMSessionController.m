@@ -1455,7 +1455,36 @@ const NSTimeInterval kModifierPause = 0.05;
 //Action method
 - (AppiumMacHTTPJSONResponse *)performAction:(NSDictionary *)commandParams statusCode:(int *)statusCode
 {
-    NSLog(@"%@",commandParams);
+    //NSLog(@"%@", commandParams);
+    NSArray *actions = commandParams[@"actions"];
+    for(NSDictionary* action in actions)
+    {
+        for (NSDictionary* step in action[@"actions"])
+        {
+            NSString *actionType = step[@"type"];
+            if ([actionType isEqualToString:@"pointerDown"])
+            {
+                
+            }
+            else if ([actionType isEqualToString:@"pointerUp"])
+            {
+                
+            }
+            else if ([actionType isEqualToString:@"pointerMove"])
+            {
+                NSLog(@"Inside pointerMove");
+                [self moveGlobalDisplayPointWithCommandParamsW3CCompatible: step];
+            }
+            else if ([actionType isEqualToString:@"pause"])
+            {
+                
+            }
+            else
+            {
+                NSLog(@"ActionType: %@ is not implimented", actionType);
+            }
+        }
+    }
     return [AppiumMacHTTPJSONResponse responseWithJson:@[] status:kAfMStatusCodeSuccess session:self.sessionId];
 }
 
@@ -1743,6 +1772,47 @@ const NSTimeInterval kModifierPause = 0.05;
     [AppiumMacHTTPJSONResponse responseWithJsonError:kAfMStatusCodeUnknownError session:self.sessionId];
 }
 
+- (void)moveGlobalDisplayPointWithCommandParamsW3CCompatible:(NSDictionary*)commandParams
+{
+    HIPoint elementPoint = [Utility invalidPoint];
+    HIPoint globalDisplayPoint = [Utility invalidPoint];
+    float xoffset = [[commandParams objectForKey:@"x"] floatValue];
+    float yoffset = [[commandParams objectForKey:@"y"] floatValue];
+    if ([commandParams[@"origin"] isKindOfClass:[NSDictionary class]])
+    {
+        
+        id elementObject = [self.elements objectForKey:[[commandParams objectForKey:@"origin"] objectForKey:@"ELEMENT"]];
+        elementPoint = [self getGlobalDisplayPoint:elementPointCenter forElement:elementObject];
+        if (!CGPointEqualToPoint(elementPoint, [Utility invalidPoint])) {
+            // The starting point is the upper left corner of the element.
+            elementPoint.x += xoffset;
+            elementPoint.y += yoffset;
+            globalDisplayPoint = elementPoint;
+        }
+        else
+        {
+            //Bad element location
+        }
+    }
+    else
+    {
+        if ([commandParams[@"origin"] isEqualToString:@"pointer"])
+        {
+            NSPoint currentPointerLocation = [NSEvent mouseLocation];
+            globalDisplayPoint = CGPointMake(currentPointerLocation.x + xoffset, currentPointerLocation.y + yoffset);
+        }
+        else if ([commandParams[@"origin"] isEqualToString:@"viewport"])
+        {
+            globalDisplayPoint = CGPointMake(0.0 + xoffset, 0.0 + yoffset);
+        }
+    }
+    NSLog(@"move to:  %f, %f", globalDisplayPoint.x, globalDisplayPoint.y);
+    [self moveMouseToScreenGlobalPoint:globalDisplayPoint];
+    NSLog(@"Finished moving");
+    NSPoint currentPointerLocation = [NSEvent mouseLocation];
+    self.lastGlobalMouseLocation = CGPointMake(currentPointerLocation.x, currentPointerLocation.y);
+}
+
 /*
  Returns the calculated globalDisplayPoint using commandParams from a moveto-like command.
  If commandParams are invalid, returns invalidPoint.
@@ -1756,9 +1826,10 @@ const NSTimeInterval kModifierPause = 0.05;
     
     // Default if there is no element.
     HIPoint globalStartingLocation = self.lastGlobalMouseLocation;
-    
+    NSLog(@"commandParams: %@", commandParams);
     HIPoint elementPoint = [Utility invalidPoint];
     id elementObject = [commandParams objectForKey:@"elementObject"];
+    NSLog(@"elementObject: %@", elementObject);
     //NSLog(@"getGlobalDisplayPointWithCommandParams elementObject:%@", elementObject);
     
     // The JsonWireProtocol defines 'xoffset' and 'yoffset' from the current mouse location, or (0, 0).
@@ -1806,9 +1877,10 @@ const NSTimeInterval kModifierPause = 0.05;
 - (HIPoint)getGlobalDisplayPoint:(ElementPointLocation)whichPoint forElement:(id)element
 {
     HIPoint returnedPoint = [Utility invalidPoint];
+    NSLog(@"getGlobalDisplayPoint %@", element);
     
     if ([element isKindOfClass:[PFUIElement class]]) {
-        //NSLog(@"getGlobalDisplayPoint:forElement: returnedPoint element: %@", [element debugDescription]);
+        NSLog(@"getGlobalDisplayPoint:forElement: returnedPoint element: %@", [element debugDescription]);
         // Special case: the AXApplication represents a global display point of {0,0}, so any "element offset" will equal a global display point. 
         if ([[element AXRole] isEqualToString:@"AXApplication"]) {
             //NSLog(@"getGlobalDisplayPoint:forElement: AXApplication");
@@ -1829,10 +1901,10 @@ const NSTimeInterval kModifierPause = 0.05;
             default:
                 break;
         }
-        //NSLog(@"getGlobalDisplayPoint:forElement: returnedPoint before convert %@", NSStringFromPoint(returnedPoint));
+        NSLog(@"getGlobalDisplayPoint:forElement: returnedPoint before convert %@", NSStringFromPoint(returnedPoint));
         
         returnedPoint = [self convertCartisionPointToGlobal:returnedPoint];
-        //NSLog(@"getGlobalDisplayPoint:forElement: returnedPoint after  convert %@", NSStringFromPoint(returnedPoint));
+        NSLog(@"getGlobalDisplayPoint:forElement: returnedPoint after  convert %@", NSStringFromPoint(returnedPoint));
     }
     
     return returnedPoint;
